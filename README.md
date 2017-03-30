@@ -12,14 +12,14 @@ Run Simple IRC Server
 Test Connection to IRC
  - run "telnet localhost 6667"
  - then type:
-    - nick <name>
-    - user <name> 8 * : <more-name>
+    - nick [name]
+    - user [name] 8 * : [more-name]
     
 Create a Room
  - *make sure no other room has the same name*
- - join <new-room-name>
+ - join [new-room-name]
  
- Known Commands for IRC Server:
- -join #<room-name>
- -part #<room-name>
- -topic #<room-name> [change-topic]
+ Known Commands for IRC Server: 
+  - join #[room-name] 
+  - part #[room-name]
+  - topic #[room-name] [change-topic] 
