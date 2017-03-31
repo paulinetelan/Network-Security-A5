@@ -16,10 +16,10 @@ def handle_msg():
     while True:
         message = irc.recv(2040)
         sys.stderr.write("Message received!\n")
-        print(message)
+        print(message.decode('utf-8'))
 
         if message.find(bytearray('PING', 'utf-8')) != -1:
-            irc.send(bytearray('PONG ' + message.split()[1] + '\r\n'), 'utf-8')
+            irc.send(bytearray('PONG ' + message.split()[1] + '\r\n', 'utf-8'))
 
     return
 
