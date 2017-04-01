@@ -24,7 +24,6 @@ def receive_msg():
         if message.find(bytearray('PING', 'utf-8')) != -1:
             print('PONG'  + message.split()[1])
             irc.send(bytearray('PONG ' + message.split()[1] + '\r\n', 'utf-8'))
-
     return
 
 # TODO send messages to irc
@@ -49,13 +48,13 @@ if __name__ == '__main__':
                 # establish irc protocol
                 sys.stderr.write("Connected to IRC!\n")
                 establish_protocol(hostname, port, channel, secret_phrase)
-                
+               
                 #start receiving thread
                 receive_thread = threading.Thread(target=receive_msg(), args=())
                 receive_thread.daemon = True
                 receive_thread.start()
 
-            except socket.error as e:
+           except socket.error as e:
                 sys.stderr.write("Sleeping...\n")
                 # If connection fails, sleep for 5s then connect again 
                 time.sleep(5)
