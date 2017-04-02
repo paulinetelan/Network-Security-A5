@@ -1,4 +1,4 @@
-import sys, socket, time, threading
+import sys, socket, time, threading, re
 import logging as log
 
 def establish_protocol(hostname, port, channel, secret):
@@ -20,6 +20,15 @@ def receive_msg():
         message = irc.recv(2040)
         sys.stderr.write("Message received!\n")
         print(message.decode('utf-8'))
+
+        #splits the message, message_split[1] contains the nickname
+        message_split = re.split('!|:', message)
+
+        #testing: check if theres a 'hello' (or secret word in the future) and responds back 
+        if message.find(bytearray('hello', 'utf-8')) != -1:
+            print ('someone said hello')
+            irc.send(bytearray('privmsg '+ message_split[1] + ' :hi from bot \n', 'utf-8'))
+
 
         if message.find(bytearray('PING', 'utf-8')) != -1:
             print('PONG'  + message.split()[1])
@@ -54,7 +63,7 @@ if __name__ == '__main__':
                 receive_thread.daemon = True
                 receive_thread.start()
 
-           except socket.error as e:
+            except socket.error as e:
                 sys.stderr.write("Sleeping...\n")
                 # If connection fails, sleep for 5s then connect again 
                 time.sleep(5)
