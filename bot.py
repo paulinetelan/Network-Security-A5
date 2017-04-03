@@ -19,12 +19,12 @@ def receive_msg():
 
         # message_split[1] = Nickname
         message_split = re.split('!|:', message.decode('utf-8'))
-        
-        # check for ping-pong message 
-        if message_split[0] == 'PING':
-            sys.stderr.write("Sending PONG "  + message_split[1] + "\n")
-            irc.sendall(bytearray('PONG ' + message_split[1] + '\r\n', 'utf-8'))
+        print(message_split)
 
+        # check for ping-pong message 
+        if message.find(bytearray('PING', 'utf-8')) != -1:
+            sys.stderr.write("Sending PONG "  + message_split[1] + "\n")
+            irc.sendall(bytearray('PONG ' + message_split[1] + '\n', 'utf-8'))
         else:
             # actual_message = Message received without escape characters
             actual_message = message_split[3].split()[0]
