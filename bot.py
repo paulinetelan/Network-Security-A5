@@ -15,7 +15,6 @@ def receive_msg():
     while True:
         message = irc.recv(2040)
         sys.stderr.write("Message received!\n")
-        print(message.decode('utf-8'))
 
         # message_split[1] = Nickname
         message_split = re.split('!|:', message.decode('utf-8'))
@@ -24,8 +23,8 @@ def receive_msg():
         # check for ping-pong message 
         if message.find(bytearray('PING', 'utf-8')) != -1:
             sys.stderr.write("Sending PONG "  + message_split[1] + "\n")
-            irc.sendall(bytearray('PONG ' + message_split[1] + '\n', 'utf-8'))
-        else:
+            irc.sendall(bytearray('PONG ' + message_split[1], 'utf-8'))
+        elif len(message_split) == 4:
             # actual_message = Message received without escape characters
             actual_message = message_split[3].split()[0]
 
