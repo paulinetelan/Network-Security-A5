@@ -19,10 +19,11 @@ def receive_msg():
     while True:
         message = irc.recv(2040)
         sys.stderr.write("Message received!\n")
-        print(message.decode('utf-8'))
+        message_str = message.decode('utf-8')
+        print(m2)
 
         #splits the message, message_split[1] contains the nickname
-        message_split = re.split('!|:', message)
+        message_split = re.split('!|:', message_str)
 
         #testing: check if theres a 'hello' (or secret word in the future) and responds back 
         if message.find(bytearray('hello', 'utf-8')) != -1:
@@ -31,7 +32,7 @@ def receive_msg():
 
 
         if message.find(bytearray('PING', 'utf-8')) != -1:
-            print('PONG'  + message.split()[1])
+            print('PONG'  + message_str.split()[1])
             irc.send(bytearray('PONG ' + message.split()[1] + '\r\n', 'utf-8'))
     return
 
