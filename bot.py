@@ -37,6 +37,10 @@ def receive_msg():
 
 # TODO send messages to irc
 def send_msg():
+    while True:
+        message = input()
+        sys.stderr.write("Sending message to irc...\n")
+        irc.sendall(bytearray(message, 'utf-8'))
     return
 
 if __name__ == '__main__':
@@ -46,6 +50,8 @@ if __name__ == '__main__':
         port = sys.argv[2]
         channel = sys.argv[3]
         secret_phrase = sys.argv[4]
+
+        print(sys.argv)
 
          # Connect to controller
         irc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -59,11 +65,20 @@ if __name__ == '__main__':
                 establish_protocol(hostname, port, channel, secret_phrase)
                
                 #start receiving thread
+                sys.stderr.write("Starting recv thread...\n")
                 receive_thread = threading.Thread(target=receive_msg(), args=())
                 receive_thread.daemon = True
                 receive_thread.start()
 
+
+                sys.stderr.write("Starting send thread...\n")
+                # start sending thread
+                send_thread = threading.Thread(send_msg, ())
+                send_thread.daemon = True
+                send_thread.start()
+                
             except socket.error as e:
+                sys.stderr.write("{0}".format(e))
                 sys.stderr.write("Sleeping...\n")
                 # If connection fails, sleep for 5s then connect again 
                 time.sleep(5)
