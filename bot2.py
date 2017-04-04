@@ -34,6 +34,10 @@ def parsemsg(s):
 def generate_nickname(length):
     return ''.join(random.choice(string.ascii_lowercase) for i in range(length))
 
+def privmsg(destination, msg):
+    ret = "PRIVMSG "+destination+" :"+msg+"\r\n"
+    return ret
+
 if __name__ == "__main__":
 
     if len(sys.argv) == 5:
@@ -62,12 +66,14 @@ if __name__ == "__main__":
                     if 'PING' in response:
                         print(response)
                         msg = response.split(':')
-                        print('PONG'+msg[1]+'\r\n')
+                        print('PONG '+msg[1]+'\r\n')
                         s.send(('PONG '+msg[1]+'\r\n').encode("utf-8"))
                     else:
-                        # args[0] = sender
-                        # args[1] = message
+
+                        # args[1].strip() = message
                         (prefix, command, args)= parsemsg(response)
+                        sender = prefix.split("!")[0]
+                        print(sender)
                         # debug msgs
                         print("prefix: " + prefix)
                         print("command: " + command)
@@ -81,7 +87,7 @@ if __name__ == "__main__":
                         # if privmsg
                         elif command == "PRIVMSG":
                             
-                            # msg from channel
+                            # from channel
                             if args[0] == CHAN and args[1].strip() == "!saysomething":
                                     s.send("PRIVMSG {} :Im a new message\r\n".format(CHAN).encode("utf-8"))
                                     print("PRIVMSG {} :Im a new message\r\n".format(CHAN).encode("utf-8"))
@@ -89,9 +95,16 @@ if __name__ == "__main__":
                                     s.send("PRIVMSG {} : "+NICK+ " out!\r\n".format(CHAN).encode("utf-8"))
                                     print(NICK + " out!")
                                     break
-                            # msg from other users
-
-                    print(response)
+                            # from other users
+                            elif sender not in AUTHENTICATED_CONTROLLERS and args[1].strip() == PASS:
+                                AUTHENTICATED_CONTROLLERS.append(sender)
+                                print(sender + " is an authenticated controller!")
+                            elif sender in AUTHENTICATED_CONTROLLERS:
+                                print("Message received from a controller...")
+                                if args[1].strip() == "status":
+                                    s.send(privmsg(sender, NICK).encode('utf-8'))
+                                    print("Sending "+privmsg(sender, NICK))
+                    #print(response)
                 s.close()
                 #sleep(1 / cfg.RATE)
             except socket.error as e:
