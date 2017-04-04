@@ -85,7 +85,7 @@ if __name__ == "__main__":
                         # args[1].strip() = message
                         (prefix, command, args)= parsemsg(response)
                         sender = prefix.split("!")[0]
-                        print(sender)
+                        print("Sender: "+sender)
                         # debug msgs
                         print("prefix: " + prefix)
                         print("command: " + command)
@@ -113,15 +113,16 @@ if __name__ == "__main__":
                                 print(sender + " is an authenticated controller!")
                             elif sender in AUTHENTICATED_CONTROLLERS:
                                 print("Message received from a controller...")
+                                
                                 if args[1].strip() == "status":
                                     s.send(privmsg(sender, NICK).encode('utf-8'))
                                     print("Sending "+privmsg(sender, NICK))
                             
-                            #ryt now only check if it has move then it disconnects, then reconnects
-                            elif args[0] == CHAN and 'move' in args[1]:
-                                s.send("QUIT\r\n".format(CHAN).encode("utf-8"))
-                                #update <host-name> <port> <channel>
-                                break
+                                #ryt now only check if it has move then it disconnects, then reconnects
+                                elif 'move' in args[1]:
+                                    s.send("QUIT\r\n".format(CHAN).encode("utf-8"))
+                                    #update <host-name> <port> <channel>
+                                    break
                     #print(response)
                 s.close()
                 #sleep(1 / cfg.RATE)
