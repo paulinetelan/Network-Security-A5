@@ -116,6 +116,12 @@ if __name__ == "__main__":
                                 if args[1].strip() == "status":
                                     s.send(privmsg(sender, NICK).encode('utf-8'))
                                     print("Sending "+privmsg(sender, NICK))
+                            
+                            #ryt now only check if it has move then it disconnects, then reconnects
+                            elif args[0] == CHAN and 'move' in args[1]:
+                                s.send("QUIT\r\n".format(CHAN).encode("utf-8"))
+                                #update <host-name> <port> <channel>
+                                break
                     #print(response)
                 s.close()
                 #sleep(1 / cfg.RATE)
@@ -124,6 +130,8 @@ if __name__ == "__main__":
                 print("Sleeping...\n")
                 # If connection fails, sleep for 5s then connect again 
                 time.sleep(5)
+                #create new socket since we closed the old one
+                s = socket.socket()
                 continue
     else:
         print("USAGE: python3 bot.py <hostname> <port> <channel> <secret-phrase>")
