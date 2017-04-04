@@ -1,11 +1,15 @@
 import socket
 import time
+import sys
+import random, string
+import irc
 
 HOST = "irc.twitch.tv"              # the Twitch IRC server
 PORT = 6667                         # always use port 6667!
 NICK = "cpsc526bot"            # your Twitch username, lowercase
 PASS = "oauth:ust447elexk8yx2b4jrhm1nhjcxw8r" # your Twitch OAuth token
 CHAN = "#cpsc526bot"                   # the channel you want to join
+AUTHENTICATED_CONTROLLERS = []
 
 
 def parsemsg(s):
@@ -26,34 +30,76 @@ def parsemsg(s):
     command = args.pop(0)
     return prefix, command, args
 
+# returns random 5 char string
+def generate_nickname(length):
+    return ''.join(random.choice(string.ascii_lowercase) for i in range(length))
 
-# network functions go here
+if __name__ == "__main__":
 
-s = socket.socket()
-s.connect((HOST, PORT))
-s.send("PASS {}\r\n".format(PASS).encode("utf-8"))
-s.send("NICK {}\r\n".format(NICK).encode("utf-8"))
-s.send("JOIN {}\r\n".format(CHAN).encode("utf-8"))
+    if len(sys.argv) == 5:
+        
+        HOST = sys.argv[1]
+        PORT = int(sys.argv[2])
+        CHAN = sys.argv[3]
+        PASS = sys.argv[4]
+        NICK = 'bot_'+generate_nickname(5)
 
-print("Connected to IRC...")
+        s = socket.socket()
+        
+        while True:
+            try:
+                s.connect((HOST, PORT))
+                s.send("PASS {}\r\n".format(PASS).encode("utf-8"))
+                s.send("NICK {}\r\n".format(NICK).encode("utf-8"))
+                s.send("USER b 0 * :{}\r\n".format(NICK).encode("utf-8"))
+                s.send("JOIN {}\r\n".format(CHAN).encode("utf-8"))
 
-while True:
-    response = s.recv(1024).decode("utf-8")
-    if response == "PING :tmi.twitch.tv\r\n":
-        s.send("PONG :tmi.twitch.tv\r\n".encode("utf-8"))
+                print("Connected to IRC with nickname "+NICK+"...")
+
+                while True:
+                    response = s.recv(1024).decode("utf-8")
+
+                    if 'PING' in response:
+                        print(response)
+                        msg = response.split(':')
+                        print('PONG'+msg[1]+'\r\n')
+                        s.send(('PONG '+msg[1]+'\r\n').encode("utf-8"))
+                    else:
+                        # args[0] = sender
+                        # args[1] = message
+                        (prefix, command, args)= parsemsg(response)
+                        # debug msgs
+                        print("prefix: " + prefix)
+                        print("command: " + command)
+                        for p in args: print ("arg["+p.strip()+"]") 
+
+                        # if nickname already in use
+                        if command == "433":
+                            NICK = 'bot_'+generate_nickname(5)
+                            s.send(("NICK "+NICK+"\r\n").encode('utf-8'))
+                        
+                        # if privmsg
+                        elif command == "PRIVMSG":
+                            
+                            # msg from channel
+                            if args[0] == CHAN and args[1].strip() == "!saysomething":
+                                    s.send("PRIVMSG {} :Im a new message\r\n".format(CHAN).encode("utf-8"))
+                                    print("PRIVMSG {} :Im a new message\r\n".format(CHAN).encode("utf-8"))
+                            elif args[0] == CHAN and args[1].strip() == "!quit":
+                                    s.send("PRIVMSG {} : "+NICK+ " out!\r\n".format(CHAN).encode("utf-8"))
+                                    print(NICK + " out!")
+                                    break
+                            # msg from other users
+
+                    print(response)
+                s.close()
+                #sleep(1 / cfg.RATE)
+            except socket.error as e:
+                print("{0}\n".format(e))
+                print("Sleeping...\n")
+                # If connection fails, sleep for 5s then connect again 
+                time.sleep(5)
+                continue
     else:
-        (prefix, command, args)= parsemsg(response)
-        print("prefix: " + prefix)
-        print("command: " + command)
-        for p in args: print ("arg["+p.strip()+"]") 
-        if command == "PRIVMSG":
-              if args[0] == CHAN and args[1].strip() == "!saysomething":
-                    s.send("PRIVMSG {} :Im a new message\r\n".format(CHAN).encode("utf-8"))
-                    print("PRIVMSG {} :Im a new message\r\n".format(CHAN).encode("utf-8"))
-              if args[0] == CHAN and args[1].strip() == "!quit":
-                    s.send("PRIVMSG {} :cpsc526bot out!\r\n".format(CHAN).encode("utf-8"))
-                    print(NICK + " out!")
-                    break
-        print(response)
-s.close()
-#sleep(1 / cfg.RATE)
+        print("USAGE: python3 bot.py <hostname> <port> <channel> <secret-phrase>")
+        sys.exit(1)
