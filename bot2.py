@@ -127,8 +127,8 @@ if __name__ == "__main__":
                 s.close()
                 #sleep(1 / cfg.RATE)
             except socket.error as e:
-                print("{0}\n".format(e))
-                print("Sleeping...\n")
+                print("{0}".format(e))
+                print("Sleeping...")
                 # If connection fails, sleep for 5s then connect again 
                 time.sleep(5)
                 #create new socket since we closed the old one
