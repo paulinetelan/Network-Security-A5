@@ -125,7 +125,7 @@ if __name__ == "__main__":
                                     break
                     #print(response)
                 s.close()
-                #sleep(1 / cfg.RATE)
+
             except socket.error as e:
                 print("{0}".format(e))
                 print("Sleeping...")
