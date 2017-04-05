@@ -4,6 +4,7 @@ import irc
 import random, string
 import threading
 
+QUIT = False
 HOST = ''
 PORT = 0000
 CHAN = ''
@@ -37,15 +38,16 @@ def generate_nickname(length):
     return ''.join(random.choice(string.ascii_lowercase) for i in range(length))
 
 def recv():
-    while True:
+    while not QUIT:
         response = s.recv(1024).decode("utf-8")
+
         if 'PING' in response:
             print(response)
             msg = response.split(':')
             print('PONG '+msg[1]+'\r\n')
             s.send(('PONG '+msg[1]+'\r\n').encode("utf-8"))
 
-        else:
+        elif response != '':
 
             # args[1].strip() = message
             (prefix, command, args)= parsemsg(response)
@@ -64,10 +66,17 @@ def recv():
     return
 
 def send():
-    while True:
+    while not QUIT:
         msg = input()
-        print("Sending "+privmsg("#test", msg))
-        s.send(privmsg("#test", msg).encode('utf-8'))
+        if msg == "QUIT":
+            print("Sending "+(msg+"\r"))
+            s.send((msg+"\r\n").encode('utf-8'))
+            print("Terminating "+NICK+"...")
+            global QUIT 
+            QUIT = True
+        else:
+            print("Sending "+privmsg("#test", msg))
+            s.send(privmsg("#test", msg).encode('utf-8'))
     return
 
 if __name__ == "__main__":
@@ -79,18 +88,26 @@ if __name__ == "__main__":
         PASS = sys.argv[4]
         NICK = "controller_"+generate_nickname(5)
 
-        s = socket.socket()
-        s.connect((HOST, PORT))
-        s.send("PASS {}\r\n".format(PASS).encode("utf-8"))
-        s.send("NICK {}\r\n".format(NICK).encode("utf-8"))
-        s.send("USER c 0 * :{}\r\n".format(NICK).encode("utf-8"))
-        s.send("JOIN {}\r\n".format(CHAN).encode("utf-8"))
+        try:
+            s = socket.socket()
+            s.connect((HOST, PORT))
+            s.send("PASS {}\r\n".format(PASS).encode("utf-8"))
+            s.send("NICK {}\r\n".format(NICK).encode("utf-8"))
+            s.send("USER c 0 * :{}\r\n".format(NICK).encode("utf-8"))
+            s.send("JOIN {}\r\n".format(CHAN).encode("utf-8"))
 
-        recv_thread = threading.Thread(target = recv)
-        recv_thread.start()
+            recv_thread = threading.Thread(target = recv)
+            recv_thread.start()
 
-        send_thread = threading.Thread(target=send)
-        send_thread.start()
+            send_thread = threading.Thread(target=send)
+            send_thread.start()
+
+        except Exception as e:
+            print("{0}".format(e))
+        finally:
+            recv_thread.join()
+            send_thread.join()
+            sys.exit(1)
     
     else:
         print("USAGE: python3 controller.py <hostname> <port> <channel> <secret-phrase>")
