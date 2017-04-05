@@ -1,12 +1,14 @@
 import re
 def port(number):
-    port = int(number)
+    try:
+        port = int(number)
 
-    if(port < 65536 and port > -1):
-        return True
-    else:
+        if(port < 65536 and port > -1):
+            return True
+        else:
+            return False
+    except:
         return False
-    
 
 # http://stackoverflow.com/questions/2532053/validate-a-hostname-string
 def hostname(hostname):
