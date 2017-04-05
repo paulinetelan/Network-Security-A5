@@ -1,4 +1,7 @@
 import re
+import socket 
+
+#check port number
 def port(number):
     try:
         port = int(number)
@@ -18,3 +21,14 @@ def hostname(hostname):
         hostname = hostname[:-1] # strip exactly one dot from the right, if present
     allowed = re.compile("(?!-)[A-Z\d-]{1,63}(?<!-)$", re.IGNORECASE)
     return all(allowed.match(x) for x in hostname.split("."))
+
+# will test if you can even connect in the first place
+def connection(hostname, port):
+    try:
+        sock = socket.socket()
+        sock.connect((hostname, int(port)))
+        sock.close()
+
+        return True
+    except:
+        return False
