@@ -3,12 +3,14 @@ import time
 import sys
 import random, string
 import irc
+import check
 
 HOST = "irc.twitch.tv"              # the Twitch IRC server
 PORT = 6667                         # always use port 6667!
 NICK = "cpsc526bot"            # your Twitch username, lowercase
 PASS = "oauth:ust447elexk8yx2b4jrhm1nhjcxw8r" # your Twitch OAuth token
 CHAN = "#cpsc526bot"                   # the channel you want to join
+COUNTER = 1                            # global attack Counter
 AUTHENTICATED_CONTROLLERS = []
 
 
@@ -30,17 +32,34 @@ def parsemsg(s):
     command = args.pop(0)
     return prefix, command, args
 
-def attack(nick , host, port):
+#takes in a list
+def check_attack(line):
+
+    #must have at least 3 elements
+    if(len(line) < 3):
+        return False
+
+    #checks hostname
+    if(not check.hostname(line[1])):
+        return False
+
+    #checks valid port
+    if(not check.port(line[2])):
+        return False    
+
+    return True
+
+
+def attack(s, sender, host, port):
+    global COUNTER
     attack_socket = socket.socket()
     attack_socket.connect((host, port))
-    try: 
-        #CREATE A 'GLOBAL' COUNTER, then uncomment the line below
-        #attack_socket.send(bytearray('ATTACK COUNTER: ' + str(COUNTER) + ' BOT NAME: ' + nick + '\n', 'utf-8'))
-        #s.send(bytearray('privmsg 'controller' : 'bot nickname: attack success', 'utf-8'))
-        print('return success to controller')
+    try:
+        attack_socket.send(bytearray('ATTACK COUNTER: ' + str(COUNTER) + ' BOT NAME: ' + NICK + '\n', 'utf-8'))
+        s.send(bytearray('PRIVMSG ' + sender + ' :' + NICK + ': attack success\r\n', 'utf-8'))
+        COUNTER = COUNTER + 1
     except:
-        print('return failure to controller')
-        #s.send(bytearray('privmsg 'controller' : bot nickname: attack failed', 'utf-8'))
+        s.send(bytearray('PRIVMSG ' + sender + ' :' + NICK + ' : attack failed\r\n', 'utf-8'))
 
 # returns random 5 char string
 def generate_nickname(length):
@@ -123,6 +142,15 @@ if __name__ == "__main__":
                                     s.send("QUIT\r\n".format(CHAN).encode("utf-8"))
                                     #update <host-name> <port> <channel>
                                     break
+                                
+                                #should be working, has error checking too
+                                elif 'attack' in args[1]:
+                                    arguments = args[1].split()
+
+                                    if(check_attack(arguments)): 
+                                        attack(s, sender, arguments[1], int(arguments[2]))
+                                    else:
+                                        s.send(bytearray('PRIVMSG ' + sender + ' :' + NICK + ' : invalid attack\r\n', 'utf-8'))
                     #print(response)
                 s.close()
 
