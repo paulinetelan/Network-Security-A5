@@ -23,7 +23,10 @@ def shutdown(sender, overflow):
     if "PRIVMSG" in overflow:
         (prefix, command, args) = parsemsg(':'+overflow.split(':',1)[1])
         sender = prefix.split("!")[0]
-        shutdown(sender, args[1])
+        if(len(args) == 1):
+            shutdown(sender, args[0])
+        else:
+            shutdown(sender, args[1])
     return
 '''
     checks for bot status every 5s
@@ -51,7 +54,11 @@ def handle_bot_status(sender, overflow):
         (prefix, command, args) = parsemsg(':'+overflow.split(':',1)[1])
         sender = prefix.split("!")[0]
         #print("in handle_bot_status: "+sender)
-        handle_bot_status(sender, args[1])
+        
+        if(len(args) == 1):
+            handle_bot_status(sender, args[0])
+        else:
+            handle_bot_status(sender, args[1])
     return
 def privmsg(destination, msg):
     ret = "PRIVMSG "+destination+" :"+msg+"\r\n"
