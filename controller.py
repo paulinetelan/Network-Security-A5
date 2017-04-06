@@ -80,6 +80,8 @@ def generate_nickname(length):
     return ''.join(random.choice(string.ascii_lowercase) for i in range(length))
 
 def recv():
+    global QUIT
+    
     while not QUIT:
         response = s.recv(1024).decode("utf-8")
         #print(response)
@@ -118,7 +120,7 @@ def recv():
     return
 
 def send():
-    
+    global QUIT
     # authenticate self to existing bots in channel
     s.send(privmsg(CHAN, PASS).encode('utf-8'))
     
@@ -128,7 +130,6 @@ def send():
             print("Sending "+(msg+"\r"))
             s.send((msg+"\r\n").encode('utf-8'))
             print("Terminating "+NICK+"...")
-            global QUIT 
             QUIT = True
         elif msg == "status":
             print("Found %d bots:"%len(BOTS))
@@ -147,9 +148,6 @@ def send():
     return
 
 if __name__ == "__main__":
-
-    global QUIT
-    QUIT = False
     
     if len(sys.argv) == 5:
         HOST = sys.argv[1]
