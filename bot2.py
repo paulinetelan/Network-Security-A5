@@ -13,14 +13,13 @@ CHAN = "#cpsc526bot"                   # the channel you want to join
 COUNTER = 1                            # global attack Counter
 AUTHENTICATED_CONTROLLERS = []
 
-
 def parsemsg(s):
     """Breaks a message from an IRC server into its prefix, command, and arguments.
     """
     prefix = ''
     trailing = []
     if not s:
-       raise IRCBadMessage("Empty line.")
+       raise IRCBadMessageError("Empty line.")
     if s[0] == ':':
         prefix, s = s[1:].split(' ', 1)
     if s.find(' :') != -1:
@@ -173,7 +172,7 @@ if __name__ == "__main__":
                                         move(s, sender, arguments[1], arguments[2], arguments[3])
                                         break
                                     else:
-                                        s.send(bytearray('PRIVMSG ' + sender + ' :' + NICK + ' : invalid move\r\n', 'utf-8'))
+                                        s.send(('PRIVMSG ' + sender + ' :' + NICK + ' : invalid move\r\n').encode('utf-8'))
                                 
                                 #should be working, has error checking too
                                 elif 'attack' in args[1]:

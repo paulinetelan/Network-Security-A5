@@ -16,9 +16,11 @@ BOTS = []
 '''
 def status_check():
     while not QUIT:
-        print("Status check!")
+        #print("Status check!")
         # authenticate self to new bots
         s.send(privmsg(CHAN, PASS).encode('utf-8'))
+        time.sleep(0.2)
+        # ask status from bots
         s.send(privmsg(CHAN, "status").encode('utf-8'))
         time.sleep(5)
 ''' 
@@ -26,7 +28,7 @@ def status_check():
     as a result of concurrency in buffer
 '''
 def handle_bot_status(sender, overflow):
-    print("Bot detected!")
+    #print("Bot detected!")
     if sender not in BOTS:
         BOTS.append(sender)
         print(sender+" added to BOTS list...")
@@ -79,12 +81,12 @@ def recv():
             # args[1].strip() = message
             (prefix, command, args)= parsemsg(response)
             sender = prefix.split("!")[0]
-            print("Sender: "+sender)
-            # debug msgs
-            print("prefix: " + prefix)
-            print("command: " + command)
-            for p in args: print ("arg["+p.strip()+"]")
-            print()
+            #print("Sender: "+sender)
+            ## debug msgs
+            #print("prefix: " + prefix)
+            #print("command: " + command)
+            #for p in args: print ("arg["+p.strip()+"]")
+            #print()
 
             # if nickname already in use
             if command == "433":
@@ -115,12 +117,19 @@ def send():
             print("Terminating "+NICK+"...")
             global QUIT 
             QUIT = True
+        elif msg == "status":
+            print("Found %d bots:"%len(BOTS))
+            for b in BOTS:
+                print(b)
         else:
             print("Sending "+privmsg(CHAN, msg))
             s.send(privmsg(CHAN, msg).encode('utf-8'))
     return
 
 if __name__ == "__main__":
+
+    global QUIT
+    QUIT = False
     
     if len(sys.argv) == 5:
         HOST = sys.argv[1]
