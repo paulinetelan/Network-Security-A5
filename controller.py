@@ -17,7 +17,8 @@ BOTS = []
 def status_check():
     while not QUIT:
         print("Status check!")
-        print("Sending "+privmsg(CHAN, "status"))
+        # authenticate self to new bots
+        s.send(privmsg(CHAN, PASS).encode('utf-8'))
         s.send(privmsg(CHAN, "status").encode('utf-8'))
         time.sleep(5)
 ''' 
@@ -89,6 +90,11 @@ def recv():
             if command == "433":
                 NICK = 'controller_'+generate_nickname(5)
                 s.send(("NICK "+NICK+"\r\n").encode('utf-8'))
+            # check for bot quitting
+            elif command == "QUIT":
+                print(sender+" quit! Updating BOTS...")
+                BOTS.remove(sender)
+                print(BOTS)
             elif command == "PRIVMSG":
                 # if msg is a bot nickname
                 if "bot_" in args[1].strip():
@@ -132,12 +138,15 @@ if __name__ == "__main__":
             s.send("JOIN {}\r\n".format(CHAN).encode("utf-8"))
 
             recv_thread = threading.Thread(target = recv)
+            recv_thread.daemon = True
             recv_thread.start()
 
             send_thread = threading.Thread(target=send)
+            send_thread.daemon = True
             send_thread.start()
 
             status_thread = threading.Thread(target=status_check)
+            status_thread.daemon = True
             status_thread.start()
 
         except Exception as e:

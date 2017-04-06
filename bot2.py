@@ -114,7 +114,7 @@ if __name__ == "__main__":
                             elif sender in AUTHENTICATED_CONTROLLERS:
                                 print("Message received from a controller...")
                                 
-                                if args[1].strip() == "status":
+                                if "status" in args[1].strip():
                                     s.send(privmsg(sender, NICK).encode('utf-8'))
                                     print("Sending "+privmsg(sender, NICK))
                             
