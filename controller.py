@@ -42,6 +42,7 @@ def status_check():
     as a result of concurrency in buffer
 '''
 def handle_bot_status(sender, overflow):
+    print("sender in handle_bot_stat: "+sender)
     #print("Bot detected!")
     if sender not in BOTS:
         BOTS.append(sender)
@@ -52,6 +53,7 @@ def handle_bot_status(sender, overflow):
     if "PRIVMSG" in overflow:
         (prefix, command, args) = parsemsg(':'+overflow.split(':',1)[1])
         sender = prefix.split("!")[0]
+        print("in handle_bot_status: "+sender)
         handle_bot_status(sender, args[1])
     return
 def privmsg(destination, msg):
@@ -109,7 +111,7 @@ def recv():
                 s.send(("NICK "+NICK+"\r\n").encode('utf-8'))
 
             elif command == "PRIVMSG":
-
+                print(response)
                 # if msg is a bot nickname
                 if "bot_" in args[1] and sender not in BOTS:
                     if sender != ' ' or sender != '':
