@@ -42,18 +42,15 @@ def status_check():
     as a result of concurrency in buffer
 '''
 def handle_bot_status(sender, overflow):
-    print("sender in handle_bot_stat: "+sender)
+    #print("sender in handle_bot_stat: "+sender)
     #print("Bot detected!")
     if sender not in BOTS:
         BOTS.append(sender)
-        print(sender+" added to BOTS list...")
-        # authenticate self to new bot
-        s.send(privmsg(CHAN, PASS).encode('utf-8'))
     # handle overflow of msg from other bots
     if "PRIVMSG" in overflow:
         (prefix, command, args) = parsemsg(':'+overflow.split(':',1)[1])
         sender = prefix.split("!")[0]
-        print("in handle_bot_status: "+sender)
+        #print("in handle_bot_status: "+sender)
         handle_bot_status(sender, args[1])
     return
 def privmsg(destination, msg):
@@ -111,10 +108,10 @@ def recv():
                 s.send(("NICK "+NICK+"\r\n").encode('utf-8'))
 
             elif command == "PRIVMSG":
-                print(response)
+                #print(response)
                 # if msg is a bot nickname
-                if "bot_" in args[1] and sender not in BOTS:
-                    if sender != ' ' or sender != '':
+                if "bot_" in args[1]:
+                    if sender != ' ' and sender != '':
                         handle_bot_status(sender, args[1])
                 if "shutting down" in args[1]:
                     shutdown(sender, args[1])
@@ -126,7 +123,7 @@ def send():
     s.send(privmsg(CHAN, PASS).encode('utf-8'))
     
     while not QUIT:
-        msg = input()
+        msg = input("Command > ")
         if msg == "quit":
             print("Sending "+(msg+"\r"))
             s.send((msg+"\r\n").encode('utf-8'))
